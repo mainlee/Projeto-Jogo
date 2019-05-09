@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title> GA Game</title>
+  <meta charset="utf-8">
+  <link href="gameGA.css" rel="stylesheet">
+  <link href="zombie.png" rel="shortcut icon">
+</head>
+  <body class="menu">
+    <br >
+    <a href="howToPlay.html">COMO JOGAR |</a>
+    <a href="gameGA.html">JOGUE |</a>
+    <a href="explication.html">EXPLICAÇÃO TÉCNICA</a>
+    <br>
+    <br>
+    <script src="gameGA.js"></script>
+  </body>
+
+<div id="div">
+  <u>-> CANVAS.<br></u>
+  <b>-> Elemento Canvas.<br></b>
+  var cnv = document.getElementById('canvas'); <br>
+
+  <b>-> Dando um contexto de renderização 2D ao elemento Canvas.<br></b>
+  var ctx = cnv.getContext('2d'); <br>
+<br>
+  <u>-> A SEGUIR ESTÃO OS RECURSOS UTILIZADOS NO JOGO. <br></u>
+  <b>-> A variável global foi utilizada para facilitar a criação das demais variáveis.<br></b>
+  var global = function (oriX,oriY,width,height,x,y) <br>
+
+  <b>-> Retornando o ponto central no eixo X ao chamar a função.<br></b>
+  global.prototype.centerX = function(){<br>
+  return this.x + (this.width/2);<br>
+
+  <b>-> Retornando o ponto central no eixo Y ao chamar a função.<br></b>
+  global.prototype.centerY = function(){<br>
+  return this.y + (this.height/2);<br>
+
+  <b>-> A variável Zombie permite a criação dos zumbis ao canvas.<br></b>
+  var Zombie = function (oriX,oriY,width,height,x,y) {<br>
+  global.call(this,oriX,oriY,width,height,x,y);<br>
+  <br>
+
+  <u>-> FUNÇÕES DO JOGO.<br></u>
+  <b>-> Função para mover jogador assim que ele pressionar a tecla.<br></b>
+  function keydownHandler(e){<br>
+  var key = e.keyCode;<br>
+  switch (key) {<br>
+  case left:<br>
+  movLeft = true;<br>
+  movRight =false;<br>
+  break;<br>
+  case right:<br>
+  movRight = true;<br>
+  movLeft =false;<br>
+  break;<br>
+  case enter:<br>
+
+  if(gameState !== playing){<br>
+  gameState = playing;<br>
+  <b>-> Remover imagens de inicio ao pressionar Enter.<br></b>
+  removeObject(pressEnter,game);<br>
+  removeObject(pressPaused,game);
+  }<br>
+  else {<br>
+  <b>-> Pausar o jogo caso o Enter seja pressionado durante o jogo.<br></b>
+  game.push(pressPaused);<br>
+  gameState = paused;
+  }<br>
+  break;<br>
+  <b>-> Verifica se a tecla espaço está pressionada.<br></b>
+  case space:<br>
+  if (!spacePress) {<br>
+  <b>-> Inicia o tiro.<br></b>
+  shoot = true;<br>
+  spacePress = true;<br>
+  }
+  break;
+  }
+  }
+    <br>
+  <b>-> Função para parar jogador assim que ele soltar a tecla.<br></b>
+  function keyupHandler(e){<br>
+  var key = e.keyCode;<br>
+  switch (key) {<br>
+  case left:<br>
+  movLeft = false;<br>
+  break;<br>
+  case right:<br>
+  movRight = false;<br>
+  break;<br>
+  case space:<br>
+  <b> -> Verifica se a tecla espaço não está pressionada, para que o tiro apenas seja disparado ao pressionar espaço.<br></b>
+  if (spacePress) {<br>
+  spacePress = false;<br>
+  }
+  break;
+  }
+  }
+  <br>
+  <b>-> Função contadora de recursos carregados.<br></b>
+  function loadImage() {<br>
+  resLoaded++;<br>
+  if(resLoaded === resLoad.length) {<br>
+  <b>-> Remove o evento que carrega os elementos.<br></b>
+  img.removeEventListener('load',loadImage,false);<br>
+  gameState = paused;
+  }
+  }
+  <br>
+  <b>-> Função para definir qual a movimentação do player.<br></b>
+  function movPlayer() {<br>
+  <b>-> Move o player para a esquerda.<br></b>
+  if (movLeft) {<br>
+  player.vx = -7;
+  }<br>
+  <b>-> Move o player para a direita.<br></b>
+  if (movRight) {<br>
+  player.vx = 7;
+  }
+  <br>
+  <b>-> Não move o player pra nenhuma direção caso pressionado teclas opostas.<br></b>
+  if(!movRight && !movLeft){<br>
+  player.vx =0;
+  }<br>
+
+  <b>-> Faz o disparo da arma do player.<br></b>
+  if(shoot){<br>
+  fire();<br>
+  shoot = false;
+  }<br>
+
+  <b>-> Atualiza a posição dos disparos.<br></b>
+  for(var i in shoots){<br>
+  var sht = shoots[i];<br>
+  sht.y += sht.vy;<br>
+  if(sht.y < -sht.height){<br>
+  removeObject(sht,shoots);<br>
+  removeObject(shoots,game);<br>
+  i--;
+  }
+  }
+
+  <br>
+  <b>-> Atualiza a posição do jogador.<br></b>
+  player.x = Math.max(70,Math.min((cnv.width - 70) - player.width, player.x + player.vx));
+  }<br>
+  <b>-> Função de tempo para criação dos zumbis.<br></b>
+  function timer() {<br>
+  <b>-> Aumenta o tempo do timer.<br></b>
+  zombieTimer++;<br>
+
+  <b>-> Criando frêquencia dos zumbis.<br></b>
+  if (zombieTimer === zombieFreq) {<br>
+  makeZombie();<br>
+  zombieTimer = 0;<br>
+  <b>-> Ajustar a frequência para não criar um grande número de zumbis.<br></b>
+  if (zombieFreq > 10) {<br>
+  zombieFreq--;
+  }
+  }<br>
+  <b>-> Atualiza a posição dos zumbis.<br></b>
+  for (var i in zombies) {<br>
+  var zombie = zombies[i];<br>
+  if (zombie.state !== zombie.dead) {<br>
+  zombie.y += zombie.vy;
+  }<br>
+  if(zombie.y > cnv.height - zombie.height) {<br>
+  gameState = over;<br>
+  gamOver = true;
+  }<br>
+  <b>-> Criando a morte do zumbi.<br></b>
+  for(var j in shoots) {<br>
+  var shoot = shoots[j];<br>
+  if(collide(shoot, zombie) && zombie.state !== zombie.dead){<br>
+  killZombie(zombie);<br>
+  <b>-> Removendo tiro da tela.<br></b>
+  removeObject(shoot,shoots);<br>
+  removeObject(shoot,game);<br>
+  j--;<br>
+  i--;
+  }
+  }
+  }
+  }<br>
+  <b>-> Função de criação de zumbis.<br></b>
+  function makeZombie() {<br>
+  var zombiePosX = Math.floor(Math.random()*555) + 65;<br>
+  var zombie = new Zombie(54,0,30,43,zombiePosX,0);<br>
+  zombie.vy = 2;<br>
+  game.push(zombie);<br>
+  zombies.push(zombie);
+  }<br>
+  <b>-> Função para remover o zumbi ao ser atingido por tiro.<br></b>
+  function killZombie(zombie) {<br>
+  zombie.state = zombie.dead;<br>
+  zombie.deadG();<br>
+  setTimeout(function () {<br>
+  removeObject(zombie,zombies);<br>
+  removeObject(zombie,game);<br>
+  },1000);
+  }
+  <br>
+  <b>-> Função de criação dos tiros.<br></b>
+  function fire() {<br>
+  var sht = new global(150, 0, 10,14, player.centerX() + 5, player.y +1 );<br>
+  sht.vy = -5;<br>
+  game.push(sht);<br>
+  shoots.push(sht);
+  }
+  <br>
+  <b>-> Função de colisão.<br></b>
+  function collide(o1,o2) {<br>
+  var hit = false;<br>
+  <b>-> Calculo da distancia entre dois objetos.<br></b>
+  var vetX = o1.centerX()- o2.centerX();<br>
+  var vetY = o1.centerY()- o2.centerY();<br>
+  <b>-> Armazena dados da soma dos objetos.<br></b>
+  var sumHWidth = o1.halfWidth() + o2.halfWidth();<br>
+  var sumHHeight =  o1.halfHeight() + o2.halfHeight();<br>
+  <b>-> Verifica a colisão.<br></b>
+  if(Math.abs(vetX) < sumHWidth && Math.abs(vetY) < sumHHeight){<br>
+  hit = true;
+  }<br>
+  return hit;
+  }
+  <br>
+  <b>-> Função de loop.<br></b>
+  function loop() {<br>
+  requestAnimationFrame(loop, cnv);<br>
+  <b>-> Define o que vai acontecer com base no estado do jogo.<br></b>
+  switch(gameState){<br>
+  case loading:<br>
+  break;<br>
+  case playing:<br>
+  update();<br>
+  break;<br>
+  case over:<br>
+  enter = 50;<br>
+  if(gamOver){<br>
+  game.push(gameOver);<br>
+  gamOver = false;
+  }<br>
+  setTimeout(function () {<br>
+  location.reload();<br>
+  },3000);<br>
+  break;<br>
+  }<br>
+  render();
+  }
+  <br>
+  <b>-> Função que remove os objetos.<br></b>
+  function removeObject(objR,array) {<br>
+  var i = array.indexOf(objR);<br>
+  if(i !== -1){<br>
+  array.splice(i,1);
+  }
+  }
+  <br>
+  <b>-> Função de atualização dos elementos.<br></b>
+  function update() {<br>
+  movPlayer();<br>
+  timer();
+  }
+  <br>
+  <b>-> Função para desenhar os elementos do jogo.<br></b>
+  function render() {<br>
+  <b>-> Limpa a tela.<br></b>
+  ctx.clearRect(0, 0, cnv.width, cnv.height);<br>
+  <b>-> Desenha caso tenha algum elemento dentro do jogo.<br></b>
+  if(game.length !== 0){<br>
+  for(var i in game){<br>
+  var gam = game[i];<br>
+  ctx.drawImage(img, gam.oriX, gam.oriY, gam.width, gam.height, Math.floor(gam.x), Math.floor(gam.y), gam.width, gam.height);
+  }
+  }
+  }
+  <br>
+  loop();
+  <br>
+</div>
+  <footer>
+    Anderson Simão - RA: 22.118.031-8
+    <br>
+    Gabriel Costa - RA: 22.118.023-5
+  </footer>
+</html>

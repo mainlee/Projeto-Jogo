@@ -1,0 +1,19 @@
+.menu{
+    font-family: "Century Gothic";
+    margin-left: 33%;
+    font-size: 20px;
+}
+
+h2{
+    margin-left: 14%;
+}
+
+#div{
+    margin-left: -15%;
+    font-size: large;
+    line-height: 1cm;
+}
+
+#canvas{
+    margin-left: -14%;
+}
